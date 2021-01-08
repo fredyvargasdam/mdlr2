@@ -94,7 +94,7 @@ public class UsuarioFacadeREST extends AbstractFacade<Usuario> {
     @GET
     @Path("usuarioByLogin/{login}/{pass}")
     @Produces({MediaType.APPLICATION_XML})
-    public Usuario usuarioByLogin(@PathParam("login") String login,@PathParam("pass") String pass) throws IllegalBlockSizeException {
+    public Usuario usuarioByLogin(@PathParam("login") String login,@PathParam("pass") String pass) {
         Usuario usuario = null;
 
         try {
@@ -108,19 +108,40 @@ public class UsuarioFacadeREST extends AbstractFacade<Usuario> {
             //Hex.decodeHex(s.toCharArray());
           //  byte[] marito=decodeHexString(login);
            // System.out.println(new String(marito));
-              byte[] bytesDesencriptados = rsa.doFinal(DatatypeConverter.parseBase64Binary(pass));
+              byte[] bytesDesencriptados = rsa.doFinal(DatatypeConverter.parseBase64Binary(sinBarra(pass)));
          //   byte[] bytesDesencriptados = rsa.doFinal(login.getBytes());
             String textoDesencripado = new String(bytesDesencriptados,StandardCharsets.UTF_8) ;
-            System.out.println("Pass: "+textoDesencripado);
+            
+            System.out.println("Pass desincriptado: "+textoDesencripado);
 
             usuario = (Usuario) em.createNamedQuery("usuarioByLogin").setParameter("login", login).getSingleResult();
             System.out.println("Passn del servidor "+usuario.getPassword());
+          //  System.out.println("Passn del servidor "+usuario.getPassword());           
             if(!(usuario.getPassword().equals(textoDesencripado))){
                  throw new ContraseniaIncorrectaException();
             }
             
         } catch (InvalidKeyException | BadPaddingException | NoSuchAlgorithmException | NoSuchPaddingException ex) {
             Logger.getLogger(UsuarioFacadeREST.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(UsuarioFacadeREST.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return usuario;
+    }
+    
+    @GET
+    @Path("usuarioByLoginSinNada/{login}/{pass}")
+    @Produces({MediaType.APPLICATION_XML})
+    public Usuario usuarioByLoginSinNada(@PathParam("login") String login,@PathParam("pass") String pass) {
+        Usuario usuario = null;
+
+        try {   
+            usuario = (Usuario) em.createNamedQuery("usuarioByLogin").setParameter("login", login).getSingleResult();
+            System.out.println("Passn del servidor "+usuario.getPassword());
+            if(!(usuario.getPassword().equals(pass))){
+                 throw new ContraseniaIncorrectaException();
+            }
+               
         } catch (Exception ex) {
             Logger.getLogger(UsuarioFacadeREST.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -139,6 +160,10 @@ public class UsuarioFacadeREST extends AbstractFacade<Usuario> {
         }
         return bytes;
     }
+    private static String sinBarra(String pass){
+         return pass.replaceAll("%2f", "/");
+     }
+
 
     public byte hexToByte(String hexString) {
         int firstDigit = toDigit(hexString.charAt(0));
