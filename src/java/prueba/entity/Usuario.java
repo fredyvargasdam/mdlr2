@@ -19,6 +19,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  *
@@ -69,7 +70,8 @@ public class Usuario implements Serializable {
     /*
     * Ultimo acceso del usuario
      */
- //   private Timestamp lastAccess;
+    @XmlJavaTypeAdapter( TimestampAdapter.class)
+    private Timestamp lastAccess;
 
     /*
     * Ultimo cambio de contraseña del usuario

@@ -99,7 +99,7 @@ public class UsuarioFacadeREST extends AbstractFacade<Usuario> {
 
         try {
             System.out.println("Desde el lado cliente me ha llegado este login: " + login);
-            System.out.println("Desde el lado cliente me ha llegado este pass: " + pass);
+            System.out.println("Desde el lado cliente me ha llegado este pass (deberia estar sin / ): " + pass);
             System.out.println("Aqui estoy buscando: " + System.getProperty("user.dir"));
             privateKey = loadPrivateKey("privatekey.dat");
 
@@ -110,14 +110,16 @@ public class UsuarioFacadeREST extends AbstractFacade<Usuario> {
            // System.out.println(new String(marito));
               byte[] bytesDesencriptados = rsa.doFinal(DatatypeConverter.parseBase64Binary(sinBarra(pass)));
          //   byte[] bytesDesencriptados = rsa.doFinal(login.getBytes());
-            String textoDesencripado = new String(bytesDesencriptados,StandardCharsets.UTF_8) ;
+           // String textoDesencripado = new String(bytesDesencriptados,StandardCharsets.UTF_8) ;
+           String textoDesencripado = new String(bytesDesencriptados) ;
             
-            System.out.println("Pass desincriptado: "+textoDesencripado);
+            System.out.println("Pass desincriptado desde el cliente: "+textoDesencripado);
 
             usuario = (Usuario) em.createNamedQuery("usuarioByLogin").setParameter("login", login).getSingleResult();
-            System.out.println("Passn del servidor "+usuario.getPassword());
+            System.out.println("Passn de la base de datos "+usuario.getPassword());
           //  System.out.println("Passn del servidor "+usuario.getPassword());           
             if(!(usuario.getPassword().equals(textoDesencripado))){
+                System.err.println("Contraseñas incorrectas");
                  throw new ContraseniaIncorrectaException();
             }
             
@@ -161,7 +163,7 @@ public class UsuarioFacadeREST extends AbstractFacade<Usuario> {
         return bytes;
     }
     private static String sinBarra(String pass){
-         return pass.replaceAll("%2f", "/");
+         return pass.replaceAll("fff", "/");
      }
 
 
@@ -188,6 +190,8 @@ public class UsuarioFacadeREST extends AbstractFacade<Usuario> {
         }
         return data;
     }
+    
+
 
     private void generaClave() throws NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, Exception {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
